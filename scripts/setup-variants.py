@@ -227,7 +227,7 @@ async def test_documents_flow(client: AsyncClient):
     # Add libsql dependency in pyproject.toml
     with open(pyproject_path, "r", encoding="utf-8") as f:
         content = f.read()
-    content = content.replace('    "aiosqlite>=0.20.0",\n', '    "aiosqlite>=0.20.0",\n    "libsql-client>=0.4.0",\n')
+    content = content.replace('    "aiosqlite>=0.20.0",\n', '    "aiosqlite>=0.20.0",\n    "libsql-client>=0.3.0",\n')
     write_file(pyproject_path, content)
 
     # Change DATABASE_URL to Turso placeholder
