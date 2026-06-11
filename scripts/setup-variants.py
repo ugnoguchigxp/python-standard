@@ -161,12 +161,12 @@ async def search_documents(
 ) -> Any:
     mock_query_vector = [0.1] * 1536
     # Perform pgvector L2 distance search
-    result = await db.execute(
+    result = await db.exec(
         select(Document)
         .order_by(Document.embedding.l2_distance(mock_query_vector))
         .limit(5)
     )
-    docs = result.scalars().all()
+    docs = result.all()
     return [{"id": d.id, "content": d.content} for d in docs]
 """
     write_file(os.path.join(root_dir, "backend", "app", "api", "routes", "documents.py"), document_route)
