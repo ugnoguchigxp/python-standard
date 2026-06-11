@@ -1,4 +1,5 @@
 from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -87,11 +88,11 @@ async def update_item(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     update_data = item_in.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(item, key, value)
-        
+
     db.add(item)
     await db.commit()
     await db.refresh(item)
@@ -116,7 +117,7 @@ async def delete_item(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     await db.delete(item)
     await db.commit()
     return {"message": "Item deleted successfully"}

@@ -1,7 +1,9 @@
 import time
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from app.db.session import get_db
 
 router = APIRouter()
@@ -28,4 +30,4 @@ async def check_readiness(db: AsyncSession = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Database connection failure: {str(e)}",
-        )
+        ) from e

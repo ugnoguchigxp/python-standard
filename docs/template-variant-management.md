@@ -1,4 +1,4 @@
-# FastAPI Standard Variant Management
+# Python Standard Variant Management
 
 この文書は `fastapi-standard` を複数のテンプレート variant として保守し、NightWorkers などの外部ツールから clone して再利用できる状態に保つための指示書です。
 

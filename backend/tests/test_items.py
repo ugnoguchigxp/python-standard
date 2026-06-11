@@ -10,20 +10,27 @@ PASSWORD = "password123"
 
 async def test_item_crud_and_access_control(client: AsyncClient):
     # 1. Register two users
-    res1 = await client.post("/api/auth/register", json={"email": USER1_EMAIL, "password": PASSWORD})
-    res2 = await client.post("/api/auth/register", json={"email": USER2_EMAIL, "password": PASSWORD})
+    res1 = await client.post(
+        "/api/auth/register", json={"email": USER1_EMAIL, "password": PASSWORD}
+    )
+    res2 = await client.post(
+        "/api/auth/register", json={"email": USER2_EMAIL, "password": PASSWORD}
+    )
     assert res1.status_code == 201
     assert res2.status_code == 201
     user1_id = res1.json()["id"]
-    user2_id = res2.json()["id"]
 
     # 2. Login User 1
-    log1 = await client.post("/api/auth/login", data={"username": USER1_EMAIL, "password": PASSWORD})
+    log1 = await client.post(
+        "/api/auth/login", data={"username": USER1_EMAIL, "password": PASSWORD}
+    )
     token1 = log1.json()["access_token"]
     headers1 = {"Authorization": f"Bearer {token1}"}
 
     # 3. Login User 2
-    log2 = await client.post("/api/auth/login", data={"username": USER2_EMAIL, "password": PASSWORD})
+    log2 = await client.post(
+        "/api/auth/login", data={"username": USER2_EMAIL, "password": PASSWORD}
+    )
     token2 = log2.json()["access_token"]
     headers2 = {"Authorization": f"Bearer {token2}"}
 
@@ -58,11 +65,15 @@ async def test_item_crud_and_access_control(client: AsyncClient):
     assert get_res2.status_code == 403
 
     # 8. User 2 tries to update User 1's item (should fail with 403)
-    put_res2 = await client.put(f"/api/items/{item_id}", json={"title": "Hacked"}, headers=headers2)
+    put_res2 = await client.put(
+        f"/api/items/{item_id}", json={"title": "Hacked"}, headers=headers2
+    )
     assert put_res2.status_code == 403
 
     # 9. User 1 updates their own item
-    put_res1 = await client.put(f"/api/items/{item_id}", json={"title": "Updated Item 1"}, headers=headers1)
+    put_res1 = await client.put(
+        f"/api/items/{item_id}", json={"title": "Updated Item 1"}, headers=headers1
+    )
     assert put_res1.status_code == 200
     assert put_res1.json()["title"] == "Updated Item 1"
 
@@ -73,7 +84,7 @@ async def test_item_crud_and_access_control(client: AsyncClient):
     # 11. User 1 deletes their own item
     del_res1 = await client.delete(f"/api/items/{item_id}", headers=headers1)
     assert del_res1.status_code == 200
-    
+
     # 12. Try to get deleted item (should fail with 404)
     get_del = await client.get(f"/api/items/{item_id}", headers=headers1)
     assert get_del.status_code == 404

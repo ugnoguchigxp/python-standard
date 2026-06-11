@@ -1,16 +1,17 @@
 from datetime import timedelta
 from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from app.api.deps import get_current_user
 from app.core import security
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserRead, Token
-from app.api.deps import get_current_user
+from app.schemas.user import Token, UserCreate, UserRead
 
 router = APIRouter()
 
@@ -26,12 +27,12 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)) -> A
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="The user with this email already exists in the system.",
         )
-    
+
     hashed_password = security.get_password_hash(user_in.password)
     # Check if this is the first user, make them superuser
     first_user_check = await db.execute(select(User).limit(1))
     is_first = first_user_check.scalars().first() is None
-    
+
     db_user = User(
         email=user_in.email,
         hashed_password=hashed_password,
@@ -51,7 +52,9 @@ async def login(
     """OAuth2 compatible token login, retrieve access token."""
     result = await db.execute(select(User).where(User.email == form_data.username))
     user = result.scalars().first()
-    if not user or not security.verify_password(form_data.password, user.hashed_password):
+    if not user or not security.verify_password(
+        form_data.password, user.hashed_password
+    ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect email or password",
@@ -60,7 +63,7 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
         )
-        
+
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {
         "access_token": security.create_access_token(
@@ -102,11 +105,11 @@ async def oauth_login() -> Any:
 
 
 @router.get("/oauth/callback")
-async def oauth_callback(code: str) -> Any:
+async def oauth_callback(_code: str) -> Any:
     """Stub to handle OAuth authentication callback."""
     # Dummy user logic or redirect
     return {
         "access_token": security.create_access_token("oauth_user@example.com"),
         "token_type": "bearer",
-        "email": "oauth_user@example.com"
+        "email": "oauth_user@example.com",
     }

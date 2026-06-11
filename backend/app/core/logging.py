@@ -1,6 +1,8 @@
 import logging
 import sys
+
 from app.core.config import settings
+
 
 def setup_logging() -> None:
     # Remove all handlers from the root logger

@@ -1,15 +1,19 @@
 import json
-from typing import Any, Union
-from pydantic import AnyHttpUrl, BeforeValidator, field_validator
+from typing import Annotated, Any
+
+from pydantic import BeforeValidator, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing_extensions import Annotated
 
 
 def parse_cors(v: Any) -> list[str]:
     if isinstance(v, str) and not v.startswith("["):
         return [i.strip() for i in v.split(",")]
-    if isinstance(v, (list, str)):
-        return v
+    if isinstance(v, list):
+        return [str(item) for item in v]
+    if isinstance(v, str):
+        parsed = json.loads(v)
+        if isinstance(parsed, list):
+            return [str(item) for item in parsed]
     raise ValueError(v)
 
 
@@ -23,13 +27,14 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
 
     # CORS settings
-    BACKEND_CORS_ORIGINS: Annotated[
-        list[str], BeforeValidator(parse_cors)
-    ] = ["http://localhost:5173", "http://localhost:3000"]
+    BACKEND_CORS_ORIGINS: Annotated[list[str], BeforeValidator(parse_cors)] = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ]
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
-    def assemble_cors_origins(cls, v: Union[str, list[str]]) -> Union[list[str], str]:
+    def assemble_cors_origins(cls, v: str | list[str]) -> list[str] | str:
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
         elif isinstance(v, list):

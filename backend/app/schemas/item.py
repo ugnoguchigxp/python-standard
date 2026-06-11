@@ -1,10 +1,9 @@
-from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 
 class ItemBase(BaseModel):
     title: str
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class ItemCreate(ItemBase):
@@ -12,11 +11,11 @@ class ItemCreate(ItemBase):
 
 
 class ItemUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
+    title: str | None = None
+    description: str | None = None
 
 
 class ItemRead(ItemBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
-    owner_id: Optional[int] = None
+    owner_id: int | None = None

@@ -1,14 +1,13 @@
-import asyncio
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
+
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.main import app
 from app.db.session import get_db
+from app.main import app
 
 # Use in-memory SQLite for testing
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -18,14 +17,14 @@ test_engine = create_async_engine(
     connect_args={"check_same_thread": False},
 )
 
-test_session_maker = sessionmaker(
+test_session_maker = async_sessionmaker(
     bind=test_engine,
     class_=AsyncSession,
     expire_on_commit=False,
 )
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(autouse=True)
 async def init_test_db():
     """Create all tables before testing and drop them after."""
     async with test_engine.begin() as conn:
@@ -45,14 +44,15 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
 @pytest.fixture
 async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     """Yields an HTTP client connected to the application with overridden DB session."""
+
     async def override_get_db():
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
-    
+
     # Using modern httpx ASGITransport
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
-        
+
     app.dependency_overrides.clear()

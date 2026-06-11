@@ -1,9 +1,8 @@
-from typing import Optional
 from sqlmodel import Field, SQLModel
 
 
 class Item(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     title: str = Field(index=True, nullable=False)
-    description: Optional[str] = Field(default=None)
-    owner_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    description: str | None = Field(default=None)
+    owner_id: int | None = Field(default=None, foreign_key="user.id")
