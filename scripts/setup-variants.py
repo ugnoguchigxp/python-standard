@@ -279,9 +279,10 @@ database_id = "your-d1-database-uuid"
 
     # Write Cloudflare-compliant main.py
     cloudflare_main_py = """import time
+
+import asgi  # type: ignore
 from fastapi import FastAPI, Request
-from workers import WorkerEntrypoint
-import asgi
+from workers import WorkerEntrypoint  # type: ignore
 
 app = FastAPI(title="FastAPI Cloudflare Worker")
 
@@ -309,9 +310,37 @@ class Default(WorkerEntrypoint):
 """
     write_file(os.path.join(root_dir, "backend", "app", "main.py"), cloudflare_main_py)
 
-    # Run ruff check & format on main.py to keep it clean
-    run_cmd("uv run ruff check --fix backend/app/main.py || true", cwd=root_dir)
-    run_cmd("uv run ruff format backend/app/main.py || true", cwd=root_dir)
+    # Delete standard tests as they are SQLite dependent and not applicable to cloudflare worker
+    tests_dir = os.path.join(root_dir, "backend", "tests")
+    shutil.rmtree(tests_dir, ignore_errors=True)
+
+    # Write cloudflare custom test file
+    cloudflare_test_py = """import sys
+from unittest.mock import MagicMock
+
+import pytest
+from httpx import ASGITransport, AsyncClient
+
+# Stub workers and asgi before importing main app
+sys.modules["workers"] = MagicMock()
+sys.modules["asgi"] = MagicMock()
+
+from app.main import app  # noqa: E402
+
+
+@pytest.mark.asyncio
+async def test_liveness():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        response = await ac.get("/api/health/liveness")
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
+"""
+    write_file(os.path.join(tests_dir, "test_cloudflare.py"), cloudflare_test_py)
+
+    # Run ruff check & format to keep it clean
+    run_cmd("uv run ruff check --fix .", cwd=os.path.join(root_dir, "backend"))
+    run_cmd("uv run ruff format .", cwd=os.path.join(root_dir, "backend"))
 
     # Commit and tag
     run_cmd("git add .", cwd=root_dir)
