@@ -262,6 +262,7 @@ async def test_documents_flow(client: AsyncClient):
     wrangler_toml = """name = "fastapi-standard-worker"
 main = "backend/app/main.py"
 compatibility_date = "2023-12-01"
+compatibility_flags = ["python_workers"]
 
 [vars]
 ENVIRONMENT = "production"
@@ -273,9 +274,45 @@ database_id = "your-d1-database-uuid"
 """
     write_file(os.path.join(root_dir, "wrangler.toml"), wrangler_toml)
 
+    # Write Cloudflare-compliant main.py
+    cloudflare_main_py = """import time
+from fastapi import FastAPI, Request
+from workers import WorkerEntrypoint
+import asgi
+
+app = FastAPI(title="FastAPI Cloudflare Worker")
+
+
+@app.get("/api/health/liveness")
+async def liveness():
+    return {"status": "ok", "timestamp": time.time()}
+
+
+@app.get("/api/items")
+async def list_items(request: Request):
+    # Access D1 binding from request environment context
+    env = request.scope.get("env")
+    if not env or not hasattr(env, "DB"):
+        return [{"id": 1, "title": "Local Mock Item", "description": "No D1 DB bound"}]
+
+    db = env.DB
+    result = await db.prepare("SELECT * FROM items").all()
+    return result.results
+
+
+class Default(WorkerEntrypoint):
+    async def fetch(self, request):
+        return await asgi.fetch(app, request, self.env)
+"""
+    write_file(os.path.join(root_dir, "backend", "app", "main.py"), cloudflare_main_py)
+
+    # Run ruff check & format on main.py to keep it clean
+    run_cmd("uv run ruff check --fix backend/app/main.py || true", cwd=root_dir)
+    run_cmd("uv run ruff format backend/app/main.py || true", cwd=root_dir)
+
     # Commit and tag
     run_cmd("git add .", cwd=root_dir)
-    run_cmd("git commit -m \"Add wrangler.toml config for Cloudflare Workers Python\"", cwd=root_dir)
+    run_cmd("git commit -m \"Configure Cloudflare Workers ASGI entrypoint and D1 binding\"", cwd=root_dir)
     run_cmd("git tag -a cloudflare-v1.0.0 -m \"Cloudflare Workers variant baseline v1.0.0\"", cwd=root_dir)
 
     # 6. variant/api-only (Branch from main, delete frontend folder)
