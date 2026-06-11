@@ -20,8 +20,8 @@ router = APIRouter()
 async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)) -> Any:
     """Register a new user."""
     # Check if user email already exists
-    result = await db.execute(select(User).where(User.email == user_in.email))
-    user = result.scalars().first()
+    result = await db.exec(select(User).where(User.email == user_in.email))
+    user = result.first()
     if user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -30,8 +30,8 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)) -> A
 
     hashed_password = security.get_password_hash(user_in.password)
     # Check if this is the first user, make them superuser
-    first_user_check = await db.execute(select(User).limit(1))
-    is_first = first_user_check.scalars().first() is None
+    first_user_check = await db.exec(select(User).limit(1))
+    is_first = first_user_check.first() is None
 
     db_user = User(
         email=user_in.email,
@@ -50,8 +50,8 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Any:
     """OAuth2 compatible token login, retrieve access token."""
-    result = await db.execute(select(User).where(User.email == form_data.username))
-    user = result.scalars().first()
+    result = await db.exec(select(User).where(User.email == form_data.username))
+    user = result.first()
     if not user or not security.verify_password(
         form_data.password, user.hashed_password
     ):

@@ -22,15 +22,15 @@ async def read_items(
 ) -> Any:
     """Retrieve items. Normal users retrieve only their items, superusers retrieve all."""
     if current_user.is_superuser:
-        result = await db.execute(select(Item).offset(skip).limit(limit))
+        result = await db.exec(select(Item).offset(skip).limit(limit))
     else:
-        result = await db.execute(
+        result = await db.exec(
             select(Item)
             .where(Item.owner_id == current_user.id)
             .offset(skip)
             .limit(limit)
         )
-    items = result.scalars().all()
+    items = result.all()
     return items
 
 
@@ -41,8 +41,8 @@ async def read_item(
     current_user: User = Depends(get_current_user),
 ) -> Any:
     """Get item by ID."""
-    result = await db.execute(select(Item).where(Item.id == id))
-    item = result.scalars().first()
+    result = await db.exec(select(Item).where(Item.id == id))
+    item = result.first()
     if not item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Item not found"
@@ -77,8 +77,8 @@ async def update_item(
     current_user: User = Depends(get_current_user),
 ) -> Any:
     """Update an item."""
-    result = await db.execute(select(Item).where(Item.id == id))
-    item = result.scalars().first()
+    result = await db.exec(select(Item).where(Item.id == id))
+    item = result.first()
     if not item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Item not found"
@@ -106,8 +106,8 @@ async def delete_item(
     current_user: User = Depends(get_current_user),
 ) -> Any:
     """Delete an item."""
-    result = await db.execute(select(Item).where(Item.id == id))
-    item = result.scalars().first()
+    result = await db.exec(select(Item).where(Item.id == id))
+    item = result.first()
     if not item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Item not found"

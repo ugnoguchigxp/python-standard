@@ -22,8 +22,8 @@ async def get_current_user(
             detail="Could not validate credentials",
         )
 
-    result = await db.execute(select(User).where(User.email == email))
-    user = result.scalars().first()
+    result = await db.exec(select(User).where(User.email == email))
+    user = result.first()
 
     if not user:
         raise HTTPException(

@@ -20,7 +20,7 @@ async def check_readiness(db: AsyncSession = Depends(get_db)):
     """Readiness check to verify the database connectivity is active."""
     try:
         # Run a simple query to verify connection
-        await db.execute(select(1))
+        await db.exec(select(1))
         return {
             "status": "ready",
             "database": "connected",
