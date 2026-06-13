@@ -43,7 +43,7 @@ class Settings(BaseSettings):
 
     # Database settings
     # Default is a local SQLite database using aiosqlite driver
-    DATABASE_URL: str = "sqlite+aiosqlite:///./sqlite.db"
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_standard"
 
     # Rate Limiting
     RATE_LIMIT_DEFAULT: str = "60 per minute"

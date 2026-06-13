@@ -5,7 +5,7 @@ from app.core.config import settings
 
 # Adjust engine parameters based on database dialect (e.g. SQLite requires special connect_args)
 connect_args = {}
-if settings.DATABASE_URL.startswith("sqlite"):
+if "sqlite" in settings.DATABASE_URL:
     connect_args["check_same_thread"] = False
 
 # Create the async engine
