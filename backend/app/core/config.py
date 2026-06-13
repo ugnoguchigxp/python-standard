@@ -43,7 +43,8 @@ class Settings(BaseSettings):
 
     # Database settings
     # Default is a local SQLite database using aiosqlite driver
-    DATABASE_URL: str = "sqlite+aiosqlite:///./sqlite.db"
+    DATABASE_URL: str = "libsql://[your-database].turso.io"
+    TURSO_AUTH_TOKEN: str = ""
 
     # Rate Limiting
     RATE_LIMIT_DEFAULT: str = "60 per minute"
