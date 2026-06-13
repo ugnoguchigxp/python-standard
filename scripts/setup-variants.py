@@ -354,9 +354,15 @@ async def test_liveness():
     
     # Remove frontend folder
     shutil.rmtree(os.path.join(root_dir, "frontend"), ignore_errors=True)
+    # Remove root node/frontend configuration files
+    for filename in ["package.json", "pnpm-workspace.yaml", "pnpm-lock.yaml"]:
+        try:
+            os.remove(os.path.join(root_dir, filename))
+        except OSError:
+            pass
     
     run_cmd("git add .", cwd=root_dir)
-    run_cmd("git commit -m \"Remove frontend directory for API-only variant\"", cwd=root_dir)
+    run_cmd("git commit -m \"Remove frontend and root node files for API-only variant\"", cwd=root_dir)
     run_cmd("git tag -a api-only-v1.0.0 -m \"API-only variant baseline v1.0.0\"", cwd=root_dir)
 
     # 7. variant/auth (Branch from main, implement complete JWT cookie authentication & security)
