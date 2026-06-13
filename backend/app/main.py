@@ -9,7 +9,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 from slowapi.middleware import SlowAPIMiddleware
 
-from app.api.routes import auth, health, items
+from app.api.routes import auth, health, items, documents
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.db.migrate import init_db
@@ -76,6 +76,7 @@ app.include_router(
 )
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 app.include_router(items.router, prefix=f"{settings.API_V1_STR}/items", tags=["items"])
+app.include_router(documents.router, prefix=f"{settings.API_V1_STR}/documents", tags=["documents"])
 
 
 @app.get("/")
