@@ -44,7 +44,7 @@ Make sure you have `uv` installed (`curl -LsSf https://astral.sh/uv/install.sh |
 ```bash
 cd backend
 uv sync --extra dev
-uv run fastapi dev app/main.py --port 8000
+uv run fastapi dev app/main.py --reload-dir app --port 8000
 ```
 - The local SQLite database will be initialized automatically on startup (`sqlite.db` in `backend/`).
 - API documentation will be available at [http://localhost:8000/api/docs](http://localhost:8000/api/docs).

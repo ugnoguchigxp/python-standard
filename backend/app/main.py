@@ -7,6 +7,7 @@ from secure.middleware import SecureASGIMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
+from slowapi.middleware import SlowAPIMiddleware
 
 from app.api.routes import auth, health, items
 from app.core.config import settings
@@ -22,11 +23,16 @@ limiter = Limiter(
 )
 
 
+import asyncio
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     # Initialize database tables
     await init_db()
-    yield
+    try:
+        yield
+    except asyncio.CancelledError:
+        pass
 
 
 app = FastAPI(
@@ -39,6 +45,7 @@ app = FastAPI(
 
 # Register rate limiter
 app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
 
 
 @app.exception_handler(RateLimitExceeded)

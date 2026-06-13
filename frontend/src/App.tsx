@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { routeTree } from "./routeTree.gen";
+import { ShowcaseSettingsProvider } from "./showcase-settings-context";
 
 const queryClient = new QueryClient();
 
@@ -30,9 +31,11 @@ function InnerApp() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <InnerApp />
-      </AuthProvider>
+      <ShowcaseSettingsProvider>
+        <AuthProvider>
+          <InnerApp />
+        </AuthProvider>
+      </ShowcaseSettingsProvider>
     </QueryClientProvider>
   );
 }

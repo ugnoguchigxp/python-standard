@@ -11,7 +11,7 @@ This is the backend for the `fastapi-standard` template project, built with Fast
 
 2. Run development server:
    ```bash
-   uv run fastapi dev app/main.py --port 8000
+   uv run fastapi dev app/main.py --reload-dir app --port 8000
    ```
 
 3. Run tests:

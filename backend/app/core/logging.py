@@ -4,6 +4,14 @@ import sys
 from app.core.config import settings
 
 
+class CancelledErrorFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        if "CancelledError" in msg and "starlette/routing.py" in msg:
+            return False
+        return True
+
+
 def setup_logging() -> None:
     # Remove all handlers from the root logger
     logging.root.handlers = []
@@ -28,4 +36,10 @@ def setup_logging() -> None:
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
     logging.getLogger("aiosqlite").setLevel(logging.WARNING)
 
+    # Add CancelledErrorFilter to suppress noisy shutdown tracebacks
+    cancelled_filter = CancelledErrorFilter()
+    logging.root.addFilter(cancelled_filter)
+    logging.getLogger("uvicorn.error").addFilter(cancelled_filter)
+
     logging.info("Logging system initialized.")
+
