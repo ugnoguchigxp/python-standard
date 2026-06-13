@@ -42,4 +42,3 @@ def setup_logging() -> None:
     logging.getLogger("uvicorn.error").addFilter(cancelled_filter)
 
     logging.info("Logging system initialized.")
-

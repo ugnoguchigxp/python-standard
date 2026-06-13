@@ -1,0 +1,12 @@
+name = "fastapi-standard-worker"
+main = "backend/app/main.py"
+compatibility_date = "2023-12-01"
+compatibility_flags = ["python_workers"]
+
+[vars]
+ENVIRONMENT = "production"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "fastapi-standard-d1"
+database_id = "your-d1-database-uuid"
